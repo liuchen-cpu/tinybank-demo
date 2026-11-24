@@ -25,12 +25,14 @@ python -m unittest discover -s tests -t . -v
 ## 工作流（按顺序，不许跳步）
 
 1. 读 issue，把**验收标准**抄进分支说明。
-2. `git switch -c <type>/<slug> main`（type: `feat` / `fix` / `refactor`）。
+2. `powershell -ExecutionPolicy Bypass -File scripts/start-task.ps1 -Type <feat|fix|refactor|docs|chore> -Slug <slug> [-Issue 0001]`
+   （等价于从最新 main 切一个 `<type>/<slug>` 分支，顺手把 issue 的验收标准打出来）。
 3. **先写测试**，跑一次确认它是红的（否则你不知道测试是否真的在测东西）。
 4. 写最少量的实现让测试变绿。
 5. 跑全量测试，确认没有回归。
 6. 提交，风格：`<type>: <一句话>`，正文写「为什么」和「怎么验的」。
-7. 输出 PR 描述：改了什么 / 怎么验证 / 风险。
+7. 收工一条命令：`powershell -ExecutionPolicy Bypass -File scripts/ship-task.ps1 -Title "<type>: <一句话>" -What "改了什么" -Why "为什么" -Verify "怎么验的"`。
+   它会再跑一遍全量测试（绿了才推）、推分支、按模板开 PR。CI 不绿是合不进去的。
 
 ## 完成定义（Definition of Done）
 
@@ -57,6 +59,15 @@ powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
 
 `.gitattributes` 已统一为 LF（`.ps1` / `.cmd` / `.bat` 除外，保留 CRLF）。
 不要把文件改成 CRLF 提交——那会让 diff 变成「整文件重写」，review 时看不出真正改了哪行。
+
+## 供应链：第三方 action 锁 SHA
+
+`.github/workflows/ci.yml` 里的 `actions/checkout`、`actions/setup-python` 都锁到 **commit SHA**，
+后面用注释标着人类可读的版本号。原因：tag 可以被改写，SHA 不能——万一上游仓库被改名/改写，
+线上 CI 跑的还是你当初审过的那份代码。
+
+升级**不要手动改 SHA**：`.github/dependabot.yml` 每周会自动开 PR 提版本，
+照常看 diff、等两个检查绿、点合并即可。
 
 ## 分支保护
 
