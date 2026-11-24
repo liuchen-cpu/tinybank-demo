@@ -42,6 +42,27 @@ python -m unittest discover -s tests -t . -v
 - [ ] 没有降低检查强度（不许改 CI、不许 `skip`、不许放宽断言来让测试变绿）
 - [ ] 提交信息能让人不看 diff 也知道改了什么
 
+## 本地快速反馈（pre-commit）
+
+首次 clone 后跑一次：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
+```
+
+之后每次 `git commit` 会自动跑 `compileall` + 全量测试，红了直接拦在提交前，不用等 CI 往返。
+钩子本体在 `.githooks/pre-commit`，跟着仓库走，换机器不用重新教。
+
+## 换行符
+
+`.gitattributes` 已统一为 LF（`.ps1` / `.cmd` / `.bat` 除外，保留 CRLF）。
+不要把文件改成 CRLF 提交——那会让 diff 变成「整文件重写」，review 时看不出真正改了哪行。
+
+## 分支保护
+
+`main` 已开启保护：必须走 PR，且 `test (3.10)` / `test (3.12)` 两个检查都绿才能合并。
+本地 `git push origin main` 被拒绝是**预期行为**，不是故障——请在分支上工作。
+
 ## 禁区
 
 - 不要 `git push --force` 到 `main`。

@@ -1,0 +1,15 @@
+#!/bin/sh
+# 提交前的本地快速反馈：语法检查 + 全量测试。
+# 红了就直接拦在提交前，省掉一次 CI 往返。
+# 启用方式（只需跑一次）：powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
+
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+echo "[pre-commit] compileall"
+python -m compileall -q tinybank tests
+
+echo "[pre-commit] unittest"
+python -m unittest discover -s tests -t . -q
+
+echo "[pre-commit] OK"
