@@ -55,6 +55,13 @@ powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
 之后每次 `git commit` 会自动跑 `compileall` + 全量测试，红了直接拦在提交前，不用等 CI 往返。
 钩子本体在 `.githooks/pre-commit`，跟着仓库走，换机器不用重新教。
 
+两条容易踩的：
+
+- **fail-closed**：本机没有 `python` 时钩子直接拒绝提交（而不是跳过）。目的是不让没测过的代码进历史；
+  确实要临时绕过是 `git commit --no-verify`，但那种提交在 PR 里要说明为什么。
+- **可执行位**：`.githooks/pre-commit` 在索引里必须是 `100755`。macOS/Linux 上如果克隆下来丢了执行权限，
+  git 会静默跳过钩子——CI 里有一条 `test -x .githooks/pre-commit` 专门守这个，别把它删了。
+
 ## 换行符
 
 `.gitattributes` 已统一为 LF（`.ps1` / `.cmd` / `.bat` 除外，保留 CRLF）。
