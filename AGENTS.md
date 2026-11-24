@@ -60,8 +60,21 @@ powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
 
 ## 分支保护
 
-`main` 已开启保护：必须走 PR，且 `test (3.10)` / `test (3.12)` 两个检查都绿才能合并。
-本地 `git push origin main` 被拒绝是**预期行为**，不是故障——请在分支上工作。
+`main` 已开启保护（strict 模式）：必须走 PR，且 `test (3.10)` / `test (3.12)` 两个检查都绿才能合并；
+要求线性历史，管理员同样受约束（`enforce_admins`），不允许 force push 和删除分支。
+
+本地 `git push origin main` 被拒绝是**预期行为**，不是故障——请在分支上工作。典型报错：
+
+```
+remote: error: GH006: Protected branch update failed for refs/heads/main.
+remote: - Changes must be made through a pull request.
+remote: - 2 of 2 required status checks are expected.
+```
+
+**这个仓库为什么是 public**：GitHub 免费账户下私有仓库开不了分支保护，API 会直接回
+`403 Upgrade to GitHub Pro or make this repository public to enable this feature`。
+本仓库没有密钥和真实数据，所以用公开换免费的护栏。如果哪天要转回私有，护栏会一并消失，
+需要先确认能接受「只靠本地 pre-commit 把关」。
 
 ## 禁区
 
