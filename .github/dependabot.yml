@@ -1,0 +1,13 @@
+# 依赖锁定不等于永不升级：锁住 SHA，由机器人开 PR 来提。
+# 所有升级都要过 test (3.10) / test (3.12) 两道检查 + 人工点合并。
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
