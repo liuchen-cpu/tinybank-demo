@@ -46,13 +46,25 @@ if ($LASTEXITCODE -ne 0) { Fail "建分支 $branch 失败" }
 Write-Host "[start-task] 已在 $branch 上开工" -ForegroundColor Green
 
 if ($Issue) {
-    $file = Join-Path $root "issues/$Issue.md"
-    if (Test-Path $file) {
-        Write-Host "[start-task] 验收标准来自 issues/$Issue.md：" -ForegroundColor Cyan
-        Get-Content $file | Where-Object { $_ -match '^#|验收|标准' } | ForEach-Object { Write-Host "  $_" }
+    # issue 文件按 <编号>-<slug>.md 命名，所以 -Issue 0001 要能匹配到 issues/0001-allocate.md
+    $issuesDir = Join-Path $root 'issues'
+    $candidates = @()
+    if (Test-Path $issuesDir) {
+        $candidates = @(Get-ChildItem $issuesDir -Filter "$Issue*.md" | Sort-Object Name)
+    }
+    if ($candidates.Count -eq 0) {
+        Write-Host "[start-task] 没找到 issues/$Issue*.md，记得把验收标准写进 PR 描述" -ForegroundColor Yellow
+    }
+    elseif ($candidates.Count -gt 1) {
+        $names = ($candidates | ForEach-Object { $_.Name }) -join ', '
+        Fail "issues/$Issue* 匹配到多个文件（$names），请写成更长的前缀"
     }
     else {
-        Write-Host "[start-task] 没找到 issues/$Issue.md，记得把验收标准写进 PR 描述" -ForegroundColor Yellow
+        $file = $candidates[0]
+        Write-Host "[start-task] 验收标准来自 issues/$($file.Name)：" -ForegroundColor Cyan
+        Get-Content $file.FullName -Encoding UTF8 |
+            Where-Object { $_ -match '^#|验收|标准|^\s*\d+\.|^\s*-\s' } |
+            ForEach-Object { Write-Host "  $_" }
     }
 }
 
