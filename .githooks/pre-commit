@@ -1,10 +1,18 @@
 #!/bin/sh
 # 提交前的本地快速反馈：语法检查 + 全量测试。
 # 红了就直接拦在提交前，省掉一次 CI 往返。
-# 启用方式（只需跑一次）：powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
+# 启用方式（每个 clone 只需跑一次）：powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
 
 set -e
 cd "$(git rev-parse --show-toplevel)"
+
+# fail-closed：没有 python 就明确拒绝，而不是让一个看不懂的 127 号错误去拦人。
+# 宁可这次提交进不来，也不要让「没测过的代码」进历史。
+if ! command -v python >/dev/null 2>&1; then
+    echo "[pre-commit] 找不到 python，无法跑测试，本次提交被拒绝。" >&2
+    echo "[pre-commit] 装好 Python 3.10+ 并加入 PATH 后再提交；临时绕过用 git commit --no-verify。" >&2
+    exit 1
+fi
 
 echo "[pre-commit] compileall"
 python -m compileall -q tinybank tests

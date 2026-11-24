@@ -24,6 +24,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # 守可执行位：macOS/Linux 克隆后钩子若不可执行，git 会静默跳过它
+      - name: 钩子可执行位
+        run: test -x .githooks/pre-commit
+
       - name: 语法检查
         run: python -m compileall -q tinybank tests
 
